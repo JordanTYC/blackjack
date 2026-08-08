@@ -57,7 +57,11 @@
       inset: 0;
       display: grid;
       place-items: center;
-      padding: 24px;
+      padding:
+        max(12px, env(safe-area-inset-top))
+        max(12px, env(safe-area-inset-right))
+        max(12px, env(safe-area-inset-bottom))
+        max(12px, env(safe-area-inset-left));
       color: #f4f7f6;
       text-align: center;
       pointer-events: none;
@@ -69,7 +73,8 @@
     }
 
     .status-card {
-      padding: 14px 18px;
+      width: min(100%, 560px);
+      padding: clamp(12px, 3vw, 18px);
       border: 1px solid rgb(255 255 255 / 12%);
       border-radius: 12px;
       background: rgb(4 18 15 / 78%);
@@ -79,6 +84,7 @@
 
     .status-card p {
       margin: 0;
+      font-size: clamp(16px, 4vw, 22px);
     }
 
     .status-card small {
@@ -86,6 +92,7 @@
       max-width: 560px;
       margin-top: 8px;
       color: #c5d2ce;
+      font-size: clamp(12px, 3vw, 14px);
       line-height: 1.45;
     }
   </style>
@@ -118,8 +125,23 @@
       const statusTitle = document.getElementById("status-title");
       const statusDetail = document.getElementById("status-detail");
 
+      const getLayoutScaleFactor = () => {
+        const width = canvas.clientWidth;
+
+        if (width <= 480) {
+          return 0.55;
+        }
+
+        if (width <= 768) {
+          return 0.75;
+        }
+
+        return 1;
+      };
+
       let game = null;
       let resizeFrame = 0;
+      let currentLayoutScale = getLayoutScaleFactor();
 
       const showError = (message) => {
         statusTitle.textContent = "Impossible de charger le jeu";
@@ -129,8 +151,23 @@
 
       const resizeRive = () => {
         cancelAnimationFrame(resizeFrame);
+
         resizeFrame = requestAnimationFrame(() => {
-          game?.resizeDrawingSurfaceToCanvas();
+          if (!game) {
+            return;
+          }
+
+          const nextScale = getLayoutScaleFactor();
+
+          if (nextScale !== currentLayoutScale) {
+            currentLayoutScale = nextScale;
+            game.layout = new rive.Layout({
+              fit: rive.Fit.Layout,
+              layoutScaleFactor: nextScale,
+            });
+          }
+
+          game.resizeDrawingSurfaceToCanvas();
         });
       };
 
@@ -149,10 +186,10 @@
           autoBind: true,
           layout: new rive.Layout({
             fit: rive.Fit.Layout,
-            layoutScaleFactor: 1,
+            layoutScaleFactor: currentLayoutScale,
           }),
           onLoad: () => {
-            game.resizeDrawingSurfaceToCanvas();
+            resizeRive();
             statusLayer.classList.add("is-hidden");
             canvas.focus({ preventScroll: true });
           },
