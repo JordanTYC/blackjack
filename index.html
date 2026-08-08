@@ -58,10 +58,7 @@
       display: grid;
       place-items: center;
       padding:
-        max(12px, env(safe-area-inset-top))
-        max(12px, env(safe-area-inset-right))
-        max(12px, env(safe-area-inset-bottom))
-        max(12px, env(safe-area-inset-left));
+        max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
       color: #f4f7f6;
       text-align: center;
       pointer-events: none;
@@ -116,7 +113,7 @@
     (() => {
       "use strict";
 
-      const RIVE_FILE = "./assets/blackjack.riv?v=3";
+      const RIVE_FILE = "./assets/blackjack.riv?v=4";
       const ARTBOARD = "MainArtboard";
       const STATE_MACHINE = "BlackjackStateMachine";
 
@@ -126,13 +123,15 @@
       const statusDetail = document.getElementById("status-detail");
 
       const getLayoutScaleFactor = () => {
-        const width = canvas.clientWidth;
+        // Le plus petit côté détecte correctement un mobile en portrait
+        // comme en paysage.
+        const shortestSide = Math.min(canvas.clientWidth, canvas.clientHeight);
 
-        if (width <= 480) {
-          return 0.55;
+        if (shortestSide <= 480) {
+          return 0.5;
         }
 
-        if (width <= 768) {
+        if (shortestSide <= 768) {
           return 0.75;
         }
 
